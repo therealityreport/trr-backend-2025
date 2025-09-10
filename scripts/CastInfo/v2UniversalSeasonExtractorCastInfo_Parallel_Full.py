@@ -59,10 +59,31 @@ from selenium.webdriver.common.action_chains import ActionChains
 print("🔍 All imports successful!")
 
 # ---------- Configuration ----------
-SERVICE_ACCOUNT_FILE = os.environ.get(
-    "GSPREAD_SERVICE_ACCOUNT",
-    "/Users/thomashulihan/Projects/TRR-Backend-2025/keys/trr-backend-df2c438612e1.json"
-)
+def setup_service_account():
+    """Set up Google Service Account credentials for both local and cloud environments"""
+    # Check if running in GitHub Codespaces
+    if os.environ.get('CODESPACES'):
+        print("🌩️ Running in GitHub Codespaces - setting up credentials from environment...")
+        service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
+        if not service_account_json:
+            raise ValueError("GOOGLE_SERVICE_ACCOUNT_JSON environment variable not set in Codespaces")
+        
+        # Create credentials file from environment variable
+        credentials_path = "/tmp/service_account.json"
+        with open(credentials_path, 'w') as f:
+            f.write(service_account_json)
+        print(f"✅ Credentials file created at {credentials_path}")
+        return credentials_path
+    else:
+        # Local development - use the key file
+        local_path = "/Users/thomashulihan/Projects/TRR-Backend/keys/trr-backend-df2c438612e1.json"
+        if os.path.exists(local_path):
+            print(f"🏠 Using local credentials at {local_path}")
+            return local_path
+        else:
+            raise FileNotFoundError(f"Service account file not found at {local_path}")
+
+SERVICE_ACCOUNT_FILE = setup_service_account()
 WORKBOOK_NAME = "Realitease2025Data"
 SHEET_NAME = "CastInfo"
 
